@@ -18,6 +18,68 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# 添加自定义CSS来解决滚动问题
+st.markdown("""
+<style>
+    /* 修复主容器滚动问题 */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: none;
+    }
+    
+    /* 确保聊天区域可以滚动 */
+    .chat-container {
+        height: 400px;
+        overflow-y: auto;
+        padding: 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.5rem;
+        background-color: #fafafa;
+        margin-bottom: 1rem;
+    }
+    
+    /* 分析结果区域样式 */
+    .analysis-container {
+        height: 500px;
+        overflow-y: auto;
+        padding: 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+    }
+    
+    /* 侧边栏滚动 */
+    .css-1d391kg {
+        overflow-y: auto;
+    }
+    
+    /* 确保页面可以完全滚动 */
+    html, body, [data-testid="stAppViewContainer"] {
+        height: 100vh;
+        overflow-y: auto;
+    }
+    
+    /* 输入区域样式 */
+    .input-container {
+        position: sticky;
+        bottom: 0;
+        background-color: white;
+        padding: 1rem 0;
+        border-top: 1px solid #e0e0e0;
+        z-index: 100;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
+
 class OllamaClient:
     def __init__(self, base_url: str = "http://172.27.66.166:11900"):
         self.base_url = base_url.rstrip('/')
@@ -283,61 +345,104 @@ def main():
     with col1:
         st.subheader("💬 对话区")
         
-        # 显示聊天历史
-        chat_container = st.container()
-        with chat_container:
+        # 显示聊天历史 - 使用可滚动容器
+        if st.session_state.chat_history:
+            st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+            chat_html = ""
             for i, (role, content) in enumerate(st.session_state.chat_history):
                 if role == "user":
-                    st.markdown(f"**🧑 您:** {content}")
+                    chat_html += f"""
+                    <div style="margin-bottom: 1rem; padding: 0.5rem; background-color: #e3f2fd; border-radius: 0.5rem;">
+                        <strong>🧑 您:</strong> {content}
+                    </div>
+                    """
                 else:
-                    st.markdown(f"**🤖 AI助理:** {content}")
-                st.markdown("---")
+                    chat_html += f"""
+                    <div style="margin-bottom: 1rem; padding: 0.5rem; background-color: #f3e5f5; border-radius: 0.5rem;">
+                        <strong>🤖 AI助理:</strong> {content}
+                    </div>
+                    """
+            st.markdown(chat_html, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            st.info("💡 开始对话吧！您可以询问任何问题或搜索本地知识库。")
         
-        # 输入框
-        user_input = st.text_area("请输入您的问题或需要查询的内容:", height=100)
+        # 输入区域 - 固定在底部
+        st.markdown('<div class="input-container">', unsafe_allow_html=True)
+        user_input = st.text_area("请输入您的问题或需要查询的内容:", height=80, key="user_input")
         
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
-            if st.button("🔍 本地搜索分析", type="primary"):
-                if user_input:
-                    process_local_search(user_input, selected_model)
+            search_btn = st.button("🔍 本地搜索分析", type="primary", use_container_width=True)
         
         with col_btn2:
-            if st.button("💬 直接对话"):
-                if user_input:
-                    process_direct_chat(user_input, selected_model)
+            chat_btn = st.button("💬 直接对话", use_container_width=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # 处理按钮点击
+        if search_btn and user_input:
+            process_local_search(user_input, selected_model)
+        elif chat_btn and user_input:
+            process_direct_chat(user_input, selected_model)
     
     with col2:
         st.subheader("📊 分析结果")
+        
+        # 使用可滚动的分析结果容器
+        st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
         
         # 显示最近的分析结果
         if hasattr(st.session_state, 'latest_analysis'):
             analysis = st.session_state.latest_analysis
             
-            st.metric("搜索结果数量", analysis.get("total_results", 0))
-            st.metric("分析时间", analysis.get("timestamp", ""))
+            # 基本统计信息
+            col_metric1, col_metric2 = st.columns(2)
+            with col_metric1:
+                st.metric("搜索结果", analysis.get("total_results", 0))
+            with col_metric2:
+                timestamp = analysis.get("timestamp", "")
+                if timestamp:
+                    time_only = timestamp.split(" ")[1] if " " in timestamp else timestamp
+                    st.metric("分析时间", time_only)
             
             # 相关主题
             if "topics" in analysis and analysis["topics"]:
-                st.subheader("🏷️ 相关主题")
+                st.markdown("### 🏷️ 相关主题")
+                topics_html = ""
                 for topic in analysis["topics"][:5]:
-                    st.write(f"• {topic}")
+                    topics_html += f'<span style="display: inline-block; background-color: #e1f5fe; padding: 0.25rem 0.5rem; margin: 0.25rem; border-radius: 1rem; font-size: 0.8rem;">• {topic}</span>'
+                st.markdown(topics_html, unsafe_allow_html=True)
             
             # 知识分类
             if "categories" in analysis and analysis["categories"]:
-                st.subheader("📂 知识分类")
+                st.markdown("### 📂 知识分类")
+                categories_html = ""
                 for category in analysis["categories"]:
-                    st.write(f"• {category}")
+                    categories_html += f'<span style="display: inline-block; background-color: #f3e5f5; padding: 0.25rem 0.5rem; margin: 0.25rem; border-radius: 1rem; font-size: 0.8rem;">📁 {category}</span>'
+                st.markdown(categories_html, unsafe_allow_html=True)
+            
+            # 搜索结果详情
+            if "sources" in analysis and analysis["sources"]:
+                st.markdown("### 📝 搜索结果")
+                for i, source in enumerate(analysis["sources"][:3], 1):
+                    with st.expander(f"结果 {i}: {source['title'][:50]}..."):
+                        st.write(f"**来源:** {source['source']}")
+                        st.write(f"**内容:** {source['snippet']}")
+        else:
+            st.info("🔍 执行搜索后，这里将显示详细的分析结果")
         
-        # 显示图表
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # 图表区域 - 在滚动容器外单独显示
         if hasattr(st.session_state, 'latest_charts'):
             charts = st.session_state.latest_charts
             
             if "category_pie" in charts:
-                st.plotly_chart(charts["category_pie"], use_container_width=True)
+                st.plotly_chart(charts["category_pie"], use_container_width=True, height=300)
             
             if "topic_bar" in charts:
-                st.plotly_chart(charts["topic_bar"], use_container_width=True)
+                st.plotly_chart(charts["topic_bar"], use_container_width=True, height=300)
 
 def process_local_search(query: str, model: str):
     """处理本地搜索查询"""
