@@ -71,6 +71,9 @@ class WebSearcher:
     def search_bing(self, query: str, num_results: int = 5) -> List[Dict[str, Any]]:
         """使用Bing搜索"""
         try:
+            # 首先检查网络连接
+            test_response = requests.get("https://www.bing.com", timeout=5)
+            
             encoded_query = urllib.parse.quote(query)
             url = f"https://www.bing.com/search?q={encoded_query}"
             
@@ -97,8 +100,17 @@ class WebSearcher:
             
             return results
             
+        except requests.exceptions.ConnectionError:
+            st.error("🔒 网络连接失败：当前可能处于内网环境，无法访问外部网站")
+            st.info("💡 建议使用内网版应用：`streamlit run ai_assistant_offline.py`")
+            return []
+        except requests.exceptions.Timeout:
+            st.error("⏱️ 网络请求超时：网络连接可能不稳定")
+            return []
         except Exception as e:
             st.error(f"搜索失败: {str(e)}")
+            if "WinError 10013" in str(e) or "访问权限不允许" in str(e):
+                st.error("🔒 网络访问权限受限，建议使用内网版应用")
             return []
     
     def get_page_content(self, url: str) -> str:
