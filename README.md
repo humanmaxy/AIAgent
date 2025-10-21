@@ -9,6 +9,7 @@
 - ✅ 支持 FP16/INT8 精度优化
 - ✅ 支持动态输入尺寸
 - ✅ ONNX 模型简化
+- ✅ **图形界面（GUI）** - 简单易用
 - ✅ 命令行和 Python API 两种使用方式
 
 ## 安装依赖
@@ -26,6 +27,28 @@ pip install tensorrt
 ```
 
 ## 快速开始
+
+### 🎨 图形界面（推荐新手使用）
+
+#### 启动 GUI
+```bash
+# Windows
+run_gui.bat
+
+# Linux / macOS
+./run_gui.sh
+# 或
+python3 converter_gui.py
+```
+
+#### GUI 特点
+- 📁 可视化文件选择
+- ⚙️ 直观的参数配置
+- 📊 实时转换日志
+- 🎯 一键转换功能
+- 💡 适合不熟悉命令行的用户
+
+详细使用说明请查看 [GUI_USER_GUIDE.md](GUI_USER_GUIDE.md)
 
 ### 1. 命令行使用
 
@@ -187,9 +210,14 @@ trtexec \
 
 ```
 .
-├── convert_yolov5_to_tensorrt.py  # 主转换脚本
+├── converter_gui.py                # 图形界面程序 (推荐)
+├── convert_yolov5_to_tensorrt.py  # 命令行转换脚本
+├── run_gui.sh                      # GUI启动脚本 (Linux/macOS)
+├── run_gui.bat                     # GUI启动脚本 (Windows)
 ├── requirements.txt                # Python 依赖
-├── example_usage.py               # 使用示例
+├── example_usage.py               # API使用示例
+├── GUI_USER_GUIDE.md              # GUI详细使用指南
+├── QUICKSTART.md                  # 快速入门
 └── README.md                      # 说明文档
 ```
 
