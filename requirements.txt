@@ -1,0 +1,20 @@
+# YOLOv5 to TensorRT Converter Requirements
+
+# Core dependencies
+torch>=1.9.0
+torchvision>=0.10.0
+onnx>=1.9.0
+onnxruntime>=1.8.0
+
+# Optional but recommended
+onnx-simplifier>=0.3.6
+
+# For YOLOv5 model support
+numpy>=1.18.5
+opencv-python>=4.5.0
+Pillow>=8.0.0
+PyYAML>=5.3.1
+
+# Note: TensorRT must be installed separately
+# Download from: https://developer.nvidia.com/tensorrt
+# Or install via: pip install tensorrt (if available for your platform)
