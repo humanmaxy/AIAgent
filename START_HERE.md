@@ -109,6 +109,9 @@ requirements.txt              ← 📋 依赖清单
 
 ### 常见问题快速解决
 
+**Q: 看到TracerWarning警告**
+- ✅ 已修复！最新版本自动抑制，不影响转换结果
+
 **Q: 找不到torch**
 ```bash
 pip install torch torchvision
@@ -124,6 +127,7 @@ sudo apt-get install python3-tk  # Ubuntu/Debian
 - 或设置环境变量: `export PATH=$PATH:/path/to/TensorRT/bin`
 
 更多问题请查看:
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - 详细故障排查指南 ⭐⭐⭐⭐⭐
 - [INSTALLATION.md](INSTALLATION.md) - 安装问题
 - [GUI_USER_GUIDE.md](GUI_USER_GUIDE.md) - 使用问题
 

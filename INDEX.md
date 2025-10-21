@@ -41,7 +41,9 @@
 #### 参考文档
 | 文件 | 内容 | 适合人群 |
 |------|------|----------|
+| **TROUBLESHOOTING.md** | 故障排查指南 | 遇到问题时 ⭐⭐⭐⭐⭐ |
 | **PROJECT_SUMMARY.md** | 项目总结，功能清单 | 开发者/管理者 ⭐⭐⭐ |
+| **CHANGELOG.md** | 更新日志 | 了解版本变化 ⭐⭐⭐ |
 | **INDEX.md** | 本文件，文件索引 | 所有用户 ⭐⭐⭐ |
 
 ### 📦 配置文件
@@ -112,9 +114,10 @@ converter.convert_all()
 📖 参考文档: `example_usage.py`, `README.md`
 
 ### 场景4: 我遇到了问题
-1. 查看 `INSTALLATION.md` - 常见问题
-2. 查看 `GUI_USER_GUIDE.md` - 故障排查
-3. 查看 `README.md` - 详细说明
+1. 查看 `TROUBLESHOOTING.md` - 故障排查指南 ⭐⭐⭐⭐⭐
+2. 查看 `INSTALLATION.md` - 安装相关问题
+3. 查看 `GUI_USER_GUIDE.md` - GUI使用问题
+4. 查看 `README.md` - 详细说明
 
 ### 场景5: 我想了解所有功能
 1. 查看 `PROJECT_SUMMARY.md` - 功能清单

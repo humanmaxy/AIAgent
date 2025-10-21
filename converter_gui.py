@@ -399,10 +399,11 @@ class ConverterGUI:
             ))
             
         except Exception as e:
-            self.log_error(f"转换失败: {str(e)}")
+            error_msg = str(e)
+            self.log_error(f"转换失败: {error_msg}")
             import traceback
             self.log_error(traceback.format_exc())
-            self.root.after(0, lambda: messagebox.showerror("错误", f"转换失败:\n{str(e)}"))
+            self.root.after(0, lambda msg=error_msg: messagebox.showerror("错误", f"转换失败:\n{msg}"))
         
         finally:
             self.is_converting = False
@@ -413,6 +414,7 @@ class ConverterGUI:
         try:
             import torch
             import onnx
+            import warnings
             
             self.log_info("\n步骤 1/2: 转换 PT -> ONNX")
             self.log_info("-" * 60)
@@ -428,11 +430,21 @@ class ConverterGUI:
             self.log_info("加载PyTorch模型...")
             model = torch.load(str(pt_path), map_location=self.device.get())
             
+            # 检测是否为ultralytics模型
+            is_ultralytics = False
             if isinstance(model, dict):
                 if 'model' in model:
                     model = model['model']
+                    is_ultralytics = True
                 elif 'ema' in model:
                     model = model['ema']
+                    is_ultralytics = True
+            
+            # 检查模型类型
+            model_type = type(model).__name__
+            if 'DetectionModel' in model_type or hasattr(model, 'yaml'):
+                is_ultralytics = True
+                self.log_info(f"检测到Ultralytics模型: {model_type}")
             
             model.eval()
             model.float()
@@ -463,18 +475,24 @@ class ConverterGUI:
             
             # 导出ONNX
             self.log_info("导出ONNX模型...")
-            torch.onnx.export(
-                model,
-                dummy_input,
-                str(onnx_path),
-                export_params=True,
-                opset_version=self.opset_version.get(),
-                do_constant_folding=True,
-                input_names=input_names,
-                output_names=output_names,
-                dynamic_axes=dynamic_axes,
-                verbose=False
-            )
+            
+            # 抑制TracerWarning
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)
+                warnings.filterwarnings('ignore', message='.*TracerWarning.*')
+                
+                torch.onnx.export(
+                    model,
+                    dummy_input,
+                    str(onnx_path),
+                    export_params=True,
+                    opset_version=self.opset_version.get(),
+                    do_constant_folding=True,
+                    input_names=input_names,
+                    output_names=output_names,
+                    dynamic_axes=dynamic_axes,
+                    verbose=False
+                )
             
             # 验证ONNX
             self.log_info("验证ONNX模型...")

@@ -68,16 +68,27 @@ class YOLOv5Converter:
         print(f"Batch size: {self.batch_size}")
         
         try:
+            import warnings
+            
             # Load PyTorch model
             print("\nLoading PyTorch model...")
             model = torch.load(self.pt_model_path, map_location=self.device)
             
             # Handle different model formats
+            is_ultralytics = False
             if isinstance(model, dict):
                 if 'model' in model:
                     model = model['model']
+                    is_ultralytics = True
                 elif 'ema' in model:
                     model = model['ema']
+                    is_ultralytics = True
+            
+            # Check model type
+            model_type = type(model).__name__
+            if 'DetectionModel' in model_type or hasattr(model, 'yaml'):
+                is_ultralytics = True
+                print(f"Detected Ultralytics model: {model_type}")
             
             # Set model to eval mode
             model.eval()
@@ -101,18 +112,24 @@ class YOLOv5Converter:
             
             # Export to ONNX
             print("Exporting to ONNX...")
-            torch.onnx.export(
-                model,
-                dummy_input,
-                str(self.onnx_path),
-                export_params=True,
-                opset_version=opset,
-                do_constant_folding=True,
-                input_names=input_names,
-                output_names=output_names,
-                dynamic_axes=dynamic_axes,
-                verbose=False
-            )
+            
+            # Suppress TracerWarning for ultralytics models
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)
+                warnings.filterwarnings('ignore', message='.*TracerWarning.*')
+                
+                torch.onnx.export(
+                    model,
+                    dummy_input,
+                    str(self.onnx_path),
+                    export_params=True,
+                    opset_version=opset,
+                    do_constant_folding=True,
+                    input_names=input_names,
+                    output_names=output_names,
+                    dynamic_axes=dynamic_axes,
+                    verbose=False
+                )
             
             # Verify ONNX model
             print("Verifying ONNX model...")

@@ -223,6 +223,13 @@ trtexec \
 
 ## 常见问题
 
+### ⚠️ TracerWarning警告（已修复）
+如果看到以下警告：
+```
+TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect.
+```
+这是使用Ultralytics YOLOv5模型时的正常警告，**最新版本(v1.1)已自动抑制**，不影响转换结果。
+
 ### 1. 找不到 trtexec
 确保 TensorRT 已安装并且 trtexec 在 PATH 中：
 ```bash
@@ -242,6 +249,9 @@ export PATH=$PATH:/path/to/tensorrt/bin
 ```bash
 python convert_yolov5_to_tensorrt.py --weights model.pt --no-simplify
 ```
+
+### 更多问题？
+查看详细的 **[故障排查指南](TROUBLESHOOTING.md)** 📘
 
 ## 性能建议
 
