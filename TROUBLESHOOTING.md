@@ -2,7 +2,37 @@
 
 ## 常见问题及解决方案
 
-### 1. PyTorch 2.6+ Weights Only Load Failed ⭐ 新问题
+### 1. No module named 'models' ⭐⭐ 最新问题 (v1.3修复)
+
+#### 问题描述
+```
+ModuleNotFoundError: No module named 'models'
+```
+
+#### 原因
+您的PT模型是使用YOLOv5官方仓库训练的，依赖于源代码中的`models`模块。
+
+#### 解决方案
+**最简单**: 安装ultralytics包（推荐）
+```bash
+pip install ultralytics
+```
+
+然后重新运行转换工具，代码会自动使用ultralytics加载模型。
+
+**替代方案**: 克隆YOLOv5仓库
+```bash
+cd f:\code\trans  # 您的工作目录
+git clone https://github.com/ultralytics/yolov5.git
+```
+
+代码会自动检测并添加yolov5目录到Python路径。
+
+详细说明请查看 `YOLOV5_MODELS_FIX.md`
+
+---
+
+### 2. PyTorch 2.6+ Weights Only Load Failed ⭐ (v1.2修复)
 
 #### 问题描述
 ```
@@ -37,7 +67,7 @@ python -c "import torch; print(torch.__version__)"
 
 ---
 
-### 2. TracerWarning 警告
+### 3. TracerWarning 警告 (v1.1修复)
 
 #### 问题描述
 ```

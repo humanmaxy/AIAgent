@@ -72,8 +72,40 @@ class YOLOv5Converter:
             
             # Load PyTorch model
             print("\nLoading PyTorch model...")
-            # PyTorch 2.6+ requires weights_only=False for Ultralytics models
-            model = torch.load(self.pt_model_path, map_location=self.device, weights_only=False)
+            
+            # Try to load the model - handle different model formats
+            try:
+                # PyTorch 2.6+ requires weights_only=False for Ultralytics models
+                model = torch.load(self.pt_model_path, map_location=self.device, weights_only=False)
+            except ModuleNotFoundError as e:
+                # If 'models' module is missing, try to load with ultralytics
+                if 'models' in str(e):
+                    print("Detected YOLOv5 source-dependent model, trying ultralytics loader...")
+                    try:
+                        from ultralytics import YOLO
+                        yolo_model = YOLO(str(self.pt_model_path))
+                        model = yolo_model.model
+                        print("✓ Successfully loaded with ultralytics")
+                    except Exception as ult_err:
+                        print(f"⚠ ultralytics loading failed: {ult_err}")
+                        print("Trying to add YOLOv5 path...")
+                        # Try to find and add yolov5 path
+                        import sys
+                        from pathlib import Path
+                        possible_paths = [
+                            self.pt_model_path.parent / 'yolov5',
+                            self.pt_model_path.parent.parent / 'yolov5',
+                            Path.cwd() / 'yolov5',
+                        ]
+                        for yolo_path in possible_paths:
+                            if yolo_path.exists():
+                                sys.path.insert(0, str(yolo_path))
+                                print(f"Added path: {yolo_path}")
+                                break
+                        # Retry loading
+                        model = torch.load(self.pt_model_path, map_location=self.device, weights_only=False)
+                else:
+                    raise
             
             # Handle different model formats
             is_ultralytics = False

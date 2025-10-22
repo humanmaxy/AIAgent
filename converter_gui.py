@@ -428,8 +428,39 @@ class ConverterGUI:
             
             # 加载模型
             self.log_info("加载PyTorch模型...")
-            # PyTorch 2.6+ 需要 weights_only=False 来加载 Ultralytics 模型
-            model = torch.load(str(pt_path), map_location=self.device.get(), weights_only=False)
+            
+            # 尝试加载模型 - 处理不同的模型格式
+            try:
+                # PyTorch 2.6+ 需要 weights_only=False 来加载 Ultralytics 模型
+                model = torch.load(str(pt_path), map_location=self.device.get(), weights_only=False)
+            except ModuleNotFoundError as e:
+                # 如果缺少 'models' 模块，尝试从 ultralytics 加载
+                if 'models' in str(e):
+                    self.log_warning(f"检测到依赖YOLOv5源码的模型，尝试使用ultralytics加载...")
+                    try:
+                        from ultralytics import YOLO
+                        yolo_model = YOLO(str(pt_path))
+                        model = yolo_model.model
+                        self.log_success("使用ultralytics成功加载模型")
+                    except Exception as ult_err:
+                        self.log_error(f"ultralytics加载失败: {ult_err}")
+                        self.log_info("尝试添加YOLOv5路径...")
+                        # 尝试查找并添加yolov5路径
+                        import sys
+                        possible_paths = [
+                            pt_path.parent / 'yolov5',
+                            pt_path.parent.parent / 'yolov5',
+                            Path.cwd() / 'yolov5',
+                        ]
+                        for yolo_path in possible_paths:
+                            if yolo_path.exists():
+                                sys.path.insert(0, str(yolo_path))
+                                self.log_info(f"添加路径: {yolo_path}")
+                                break
+                        # 重试加载
+                        model = torch.load(str(pt_path), map_location=self.device.get(), weights_only=False)
+                else:
+                    raise
             
             # 检测是否为ultralytics模型
             is_ultralytics = False

@@ -1,5 +1,37 @@
 # 更新日志
 
+## [1.3] - 2025-10-21
+
+### 🐛 Bug修复
+
+#### YOLOv5 Models模块依赖问题
+- **问题**: `ModuleNotFoundError: No module named 'models'`
+- **原因**: PT模型是使用YOLOv5官方仓库训练的，依赖源码结构
+- **修复**: 
+  - 自动尝试使用ultralytics加载模型
+  - 自动查找yolov5目录并添加到Python路径
+  - 提供详细的错误提示和解决建议
+- **文件**: `converter_gui.py` 和 `convert_yolov5_to_tensorrt.py`
+
+```python
+# 新增的自动修复逻辑
+try:
+    model = torch.load(pt_path, weights_only=False)
+except ModuleNotFoundError as e:
+    if 'models' in str(e):
+        # 尝试使用ultralytics
+        from ultralytics import YOLO
+        yolo_model = YOLO(pt_path)
+        model = yolo_model.model
+```
+
+### 📚 文档更新
+
+#### 新增文档
+- `YOLOV5_MODELS_FIX.md` - YOLOv5模块依赖问题详细指南
+
+---
+
 ## [1.2] - 2025-10-21
 
 ### 🐛 Bug修复
