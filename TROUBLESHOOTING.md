@@ -2,7 +2,42 @@
 
 ## 常见问题及解决方案
 
-### 1. TracerWarning 警告
+### 1. PyTorch 2.6+ Weights Only Load Failed ⭐ 新问题
+
+#### 问题描述
+```
+_pickle.UnpicklingError: Weights only load failed.
+WeightsUnpickler error: Unsupported global: GLOBAL ultralytics.nn.tasks.DetectionModel
+```
+
+#### 原因
+PyTorch 2.6改变了`torch.load()`的默认行为，默认启用`weights_only=True`，不允许加载包含自定义类的模型。
+
+#### 解决方案
+**已在v1.2版本修复！** 更新到最新版本即可。
+
+如果需要手动修复，在两个文件中添加`weights_only=False`参数：
+
+**converter_gui.py (第431行)**:
+```python
+model = torch.load(str(pt_path), map_location=self.device.get(), weights_only=False)
+```
+
+**convert_yolov5_to_tensorrt.py (第73行)**:
+```python
+model = torch.load(self.pt_model_path, map_location=self.device, weights_only=False)
+```
+
+#### 检查PyTorch版本
+```bash
+python -c "import torch; print(torch.__version__)"
+```
+
+详细说明请查看 `PYTORCH_2.6_FIX.md`
+
+---
+
+### 2. TracerWarning 警告
 
 #### 问题描述
 ```

@@ -1,5 +1,25 @@
 # 更新日志
 
+## [1.2] - 2025-10-21
+
+### 🐛 Bug修复
+
+#### PyTorch 2.6+ 兼容性问题
+- **问题**: `_pickle.UnpicklingError: Weights only load failed`
+- **原因**: PyTorch 2.6默认启用`weights_only=True`，不允许加载Ultralytics模型
+- **修复**: 添加`weights_only=False`参数到`torch.load()`
+- **文件**: `converter_gui.py` 和 `convert_yolov5_to_tensorrt.py`
+
+```python
+# 修复前
+model = torch.load(str(pt_path), map_location=self.device.get())
+
+# 修复后
+model = torch.load(str(pt_path), map_location=self.device.get(), weights_only=False)
+```
+
+---
+
 ## [1.1] - 2025-10-21
 
 ### 🐛 Bug修复

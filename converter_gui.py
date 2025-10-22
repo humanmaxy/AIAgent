@@ -428,7 +428,8 @@ class ConverterGUI:
             
             # 加载模型
             self.log_info("加载PyTorch模型...")
-            model = torch.load(str(pt_path), map_location=self.device.get())
+            # PyTorch 2.6+ 需要 weights_only=False 来加载 Ultralytics 模型
+            model = torch.load(str(pt_path), map_location=self.device.get(), weights_only=False)
             
             # 检测是否为ultralytics模型
             is_ultralytics = False

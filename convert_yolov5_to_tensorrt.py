@@ -72,7 +72,8 @@ class YOLOv5Converter:
             
             # Load PyTorch model
             print("\nLoading PyTorch model...")
-            model = torch.load(self.pt_model_path, map_location=self.device)
+            # PyTorch 2.6+ requires weights_only=False for Ultralytics models
+            model = torch.load(self.pt_model_path, map_location=self.device, weights_only=False)
             
             # Handle different model formats
             is_ultralytics = False
